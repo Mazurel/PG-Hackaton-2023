@@ -1,12 +1,15 @@
 import io
 from typing import TextIO
+import os
 
 import streamlit as st
 
 from filter import censor, create_profanty_table
 
 def get_profanity_file() -> TextIO:
-    return io.open("curses_55k.txt", mode="r", encoding="utf-8")
+    dir = os.path.dirname(__file__)
+    full_path = os.path.join(dir, "dataset/curses_55k.txt")
+    return io.open(full_path, mode="r", encoding="utf-8")
 
 @st.cache()
 def get_profanity_table() -> dict:
