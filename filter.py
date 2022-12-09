@@ -1,3 +1,5 @@
+from unicodedata import normalize
+
 from typing import TextIO
 
 
@@ -16,6 +18,9 @@ def create_profanty_table(file: TextIO) -> dict:
             profanity_hash[key]=[word]
     return profanity_hash
 
+def unpolish_word(word: str) -> str:
+    return normalize("NFKD", word).encode("ascii", "ignore").decode("ASCII")
+
 def censor(sentence="", hash_table={}):
     """
     Censor sentence based on provided hash table
@@ -24,7 +29,7 @@ def censor(sentence="", hash_table={}):
     new_sentence = ""
 
     for word in sentence.split():
-        lowered_word = word.lower()
+        lowered_word = unpolish_word(word.lower())
         first_letter = lowered_word[0]
         if first_letter in hash_table.keys():
             if lowered_word in hash_table[first_letter]:
