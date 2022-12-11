@@ -11,6 +11,7 @@ Następnie utworzyć należy folder, w którym znajdować ma się projekt i otwo
 W terminalu należy wykonać następującą komendę:
 
 ```bash
+git clone https://github.com/Mazurel/PG-Hackaton-2022-Pretest.git
 pip install -r requirements.txt
 ```
 
