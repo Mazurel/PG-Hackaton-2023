@@ -1,6 +1,6 @@
 # PG-Hackaton-2022-Pretest
 
-## Instalacja programu
+## Instalacja i obsługa programu
 
 W celu instalacji programu zainstalować należy wcześniej następujące oprogramowanie:
 
@@ -20,6 +20,8 @@ Następnie, projekt uruchomić można za pomocą:
 ```bash
 streamlit run gui.py
 ```
+
+Komenda ta powinna automatycznie otworzyć stronę internetową, z której poziomu obsłużyć można program.
 
 ## Zasada działania programu
 
