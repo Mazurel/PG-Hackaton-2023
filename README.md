@@ -28,3 +28,9 @@ Komenda ta powinna automatycznie otworzyć stronę internetową, z której pozio
 Architektura naszego rozwiązania, opisana została na poniższym schemacie:
 
 ![Schemat architektury](img/Schemat.png)
+
+## Jakie kombinacje wulgaryzmów program potrafi wyłapać:
+
+  * Zamiana liter na odpowiedniki cyfr (a->4, b->8 itd.) po kolei, dla przykładu słowo  : otrzymano -> 0trzymano -> 0trzymano0 -> otrzyman0
+  * Zastosowano kombinacje 2 różnych liter w jednym słowie  :  0trzym4n0
+  * Program znajduje wulgarne słowa mające podwojone literki  : otrzzymano, ootrzymano
