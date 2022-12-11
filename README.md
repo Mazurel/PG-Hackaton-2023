@@ -20,3 +20,9 @@ Następnie, projekt uruchomić można za pomocą:
 ```bash
 streamlit run gui.py
 ```
+
+## Zasada działania programu
+
+Architektura naszego rozwiązania, opisana została na poniższym schemacie:
+
+![Schemat architektury](img/Schemat.png)
