@@ -3,19 +3,25 @@ from unicodedata import normalize
 from typing import TextIO
 from generator import word_variances_alg
 
-def create_profanty_table(file: TextIO) -> dict:
+def _append_word_to_hash(word: str, hash: dict):
+    key = word[0]
+    words = hash.get(key, []) + [word]
+    hash[key] = words
+
+def create_profanty_table(file: TextIO, generate_variations=False) -> dict:
     """
     Create hash table required, for profanity lookups.
     """
     data = file.read()
     data = data.split('\n')
+    data = map(lambda word: word.strip(), data)
+    data = filter(lambda word: len(word) > 0, data)
     profanity_hash = {}
-    for word in data[:-1]:
-        key = word[0]
-        if key in profanity_hash.keys():
-            profanity_hash[key].append(word)
+    for word in data:
+        if generate_variations:
+            append_curse(word, profanity_hash)
         else:
-            profanity_hash[key] = [word]
+            _append_word_to_hash(word, profanity_hash)
     return profanity_hash
 
 
@@ -44,18 +50,12 @@ def censor(sentence="", hash_table={}):
     return new_sentence[:-1]  # [:-1] deletes space at the end
 
 
-def add_words(word: str, profanity_hash: dict) -> dict:
+def append_curse(word: str, profanity_hash: dict) -> dict:
     """
-    Append new curs words to provided profanity_hash
+    Append new curs word to provided profanity_hash
     """
-    word = word.lower()
+    word = word.lower().strip()
     similar_words = word_variances_alg(word)
     for word in similar_words:
-        key = word[0]
-        if key in profanity_hash.keys():
-            if word not in profanity_hash[key]:
-                profanity_hash[key].append(word)
-        else:
-            profanity_hash[key] = [word]
-
+        _append_word_to_hash(word, profanity_hash)
     return profanity_hash

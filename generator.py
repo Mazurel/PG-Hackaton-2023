@@ -111,3 +111,26 @@ def word_variances_alg(word):
     word_variances = word_variances + full_list
 
     return list(set(word_variances))
+
+if __name__ == "__main__":
+    from argparse import ArgumentParser
+    from pathlib import Path
+    import io
+
+    from tqdm import tqdm
+
+    parser = ArgumentParser()
+    parser.add_argument("src", type=Path, help="Source file.")
+    parser.add_argument("dst", type=Path, help="Destination file.")
+    args = parser.parse_args()
+
+    src = args.src
+    dst = args.dst
+
+    with io.open(src.as_posix(), mode="r", encoding="utf-8") as f_in,\
+         io.open(dst.as_posix(), mode="w", encoding="utf-8") as f_out:
+        for word in tqdm(f_in.readlines()):
+            if len(word) <= 0:
+                continue
+            for word_variant in word_variances_alg(word):
+                f_out.write(f"{word_variant}")
