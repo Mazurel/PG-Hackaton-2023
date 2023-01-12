@@ -18,9 +18,11 @@ class GTFS:
                 path.exists("data/trips.txt") &
                 path.exists("data/shapes.txt") &
                 path.exists("data/calendar_dates.txt")):
+            print("Downloading data")
             r = requests.get(self.URL)
             z = zipfile.ZipFile(io.BytesIO(r.content))
             z.extractall("data")
+            print("Download completed")
 
     def prepare_data(self):
         """
@@ -28,24 +30,29 @@ class GTFS:
         """
         self.download_data()
 
+        print("Load csvs")
         df_stops = pd.read_csv('data/stops.txt')
         df_routes = pd.read_csv('data/routes.txt')
         df_stoptimes = pd.read_csv('data/stop_times.txt')
         df_trips = pd.read_csv('data/trips.txt')
         df_shapes = pd.read_csv('data/shapes.txt')
         df_dates = pd.read_csv('data/calendar_dates.txt')
+        print("Loading completed")
 
         columns_to_drop = ['stop_headsign', 'stop_code', 'route_long_name', 'route_desc', 'route_color',
                            'route_text_color',
                            'trip_short_name']
 
+        print("Merging columns")
         result = pd.merge(df_stoptimes, df_stops, how='inner', on='stop_id')
         result = pd.merge(result, df_trips, how='inner', on='trip_id')
         result = pd.merge(result, df_routes, how='inner', on='route_id')
         result = pd.merge(result, df_dates, how='inner', on='service_id')
+        print("Merging completed")
 
         result = result.drop(columns=columns_to_drop)
 
+        print("Process times")
         result['arrival_time_minutes'] = result['arrival_time'].map(lambda x: int(x[3:5]))
         result['arrival_time_hours'] = result['arrival_time'].map(lambda x: int(x[:2]))
         result['departure_time_minutes'] = result['departure_time'].map(lambda x: int(x[3:5]))
@@ -73,17 +80,22 @@ class GTFS:
                 int(x[11:13]) - 24) + x[
                                       13:] if int(
                 x[11:13]) >= 24 else x)
-        print(result['departure_time'][0])
+        print("Processing completed")
+
+        print("Converting strings to datatime")
 
         result['arrival_time'] = pd.to_datetime(result['arrival_time'], format="%Y-%m-%d %H:%M",
                                                 infer_datetime_format=True)
         result['departure_time'] = pd.to_datetime(result['departure_time'], format="%Y-%m-%d %H:%M",
                                                   infer_datetime_format=True)
-        print(type(result['departure_time']))
+        print("Conversion completed")
 
         self.result = result
         if not path.exists("data/processed_data.csv"):
             result.to_csv("data/processed_data.csv", date_format="%Y-%m-%d %H:%M")
+        else:
+            print("data/processed_data.csv already exists")
+
 
     def load_data(self):
         """
