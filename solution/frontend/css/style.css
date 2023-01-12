@@ -2,8 +2,26 @@ body {
     margin: 0px;
     padding: 0px;
 }
-
+    
 html, body, #map {
     width: 100vw;
     height: 100%;
+}
+
+#map {
+    width: 100vw;
+    height: 90%;
+}
+
+#input-container {
+    display: flex;
+    width: 100vw;
+    height: 10%;
+    align-items: center;
+    align-content: center;
+}
+
+.input {
+    display: block;
+    margin-left: 20px;
 }

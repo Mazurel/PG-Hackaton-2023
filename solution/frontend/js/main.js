@@ -1,13 +1,68 @@
+const URL = "http://localhost:3000"
+
 const latLngToCoords = (pos) => [
     pos.lat,
     pos.lng
 ]
+
+const getCurrentTime = () => {
+    const time_element = document.getElementById("current-time");
+    const [hours, minutes] = time_element.value.split(":");
+    return {
+        hours: parseInt(hours),
+        minutes: parseInt(minutes)
+    }
+}
+
+const startSearch = async (startingPoint, endingPoint) => {
+    return (await fetch(`${URL}/api/search`, {
+        method: "POST",
+        mode: "cors",
+        headers: {
+            'Content-Type': "application/json"
+        },
+        body: JSON.stringify({
+            "starting_point": startingPoint,
+            "ending_point": endingPoint,
+            "settings": {
+                "time": getCurrentTime()
+            }
+        })
+    })).text()
+}
+
+const getSearchResult = (id) => new Promise((resolve, reject) => {
+    const TIMEOUT_MAX = 30_000;
+    const QUERY_TIME = 50;
+    const MAX_COUNT = Math.floor(TIMEOUT_MAX / QUERY_TIME);
+
+    let count = 0;
+    interval = setInterval(() => {
+        fetch(`${URL}/api/query/${id}`, {
+            method: "GET",
+            mode: "cors",
+        }).then((res) => {
+            res.json()
+                .then((data) => {
+                    clearInterval(interval);
+                    resolve(data.points);
+                })
+        })
+        count += 1;
+        if (count > MAX_COUNT) {
+            clearInterval(interval);
+            reject("Timeout");
+        }
+    }, QUERY_TIME)
+})
+
 
 class MapController {
     constructor() {
         this._starting_marker = null;
         this._ending_marker = null;
         this._connection_lines = []
+        this._checkpoints = []
         this._next_first = true;
     }
 
@@ -23,22 +78,34 @@ class MapController {
 
         this.map.on("click", (ev) => {
             this.set_next_pos(latLngToCoords(ev.latlng));
+            this.clear();
             this.update();
         })
     }
 
-    update() {
-        if (this.start_position != null && this.end_position != null) {
-            this._connection_lines.map((line) => {
-                line.remove()
-            })
+    clear() {
+        this._connection_lines.forEach(line => line.remove());
+        this._connection_lines = [];
+        this._checkpoints.forEach(chkpt => chkpt.remove());
+        this._checkpoints = []
+    }
 
-            this._connection_lines = [L.polyline([
-                this.start_position,
-                this.end_position
-            ])
-            ]
-            this._connection_lines.forEach((line) => line.addTo(this.map))
+    async update() {
+        if (this.start_position != null && this.end_position != null) {
+            const id = await startSearch(this.start_position, this.end_position)
+            const points = await getSearchResult(id);
+
+            this._checkpoints = points.map((pt) => L.marker(pt).addTo(this.map).bindPopup(pt.name));
+
+            let polys = [];
+            for (let i = 0; i < points.length - 1; i++) {
+                polys.push([
+                    points[i],
+                    points[i + 1]
+                ])
+            }
+
+            this._connection_lines = polys.map(pl => L.polyline(pl).addTo(this.map))
         }
     }
 
@@ -84,9 +151,8 @@ const mapController = new MapController()
 
 document.onreadystatechange = () => {
     if (document.readyState != "complete") return;
-
     mapController.initialize_map()
-    mapController.start_position = [54.357652, 18.658762]
-    mapController.end_position = [54.381310, 18.604082]
-    mapController.update()
+    const time_element = document.getElementById("current-time");
+    const date = new Date();
+    time_element.value = `${date.getHours()}:${date.getMinutes()}`
 }
