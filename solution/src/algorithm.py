@@ -7,8 +7,7 @@ import numpy as np
 import pandas as pd
 from geopy.distance import geodesic 
 
-def get_next_stops_from_GTFS(*point):
-    pass
+from GTFS import load_data, prepare_data, get_fastest_busses_from_bus_stop
 
 class Algorithm:
     def __init__(self):
@@ -26,7 +25,7 @@ class Algorithm:
         #   - arrival_time
         self.route_stack = deque()
         self.best_route = []
-        self.best_time = -1
+        self.best_time = time(23, 59)
 
     def get_route(self, point_A, point_B, **settings):
         """Create a route from point A to point B,
@@ -76,8 +75,8 @@ class Algorithm:
             self.update_best_route(end_point, walk_time)
 
         # dataframe with all available routes from given stop
-        all_routes = get_next_stops_from_GTFS(stop_coords, start_time)
-
+        all_routes = get_fastest_busses_from_bus_stop(stop_coords, f"2023-01-13 {start_time.hour}:{start_time.minute}")
+        print(all_routes.columns)
         closest_stops = self._get_closest_stop(end_point, all_routes, num_stops=self.num_of_closest_stops, return_all=True)
 
         #TODO: solve problem with time
@@ -198,6 +197,8 @@ class Algorithm:
         return time(start_time.hour + add_hours, start_time.minute + add_minutes)
 
 if __name__ == "__main__":
+    prepare_data()
+    # load_data()
     algo = Algorithm()
     # print(algo.stops)
-    algo.get_route((54.381709857835816, 18.591475549238343), (54.381709857835816, 18.591475549238343))
+    algo.get_route((54.381709857835816, 18.591475549238343), (54.381709857835816, 18.591475549238343), start_time=time(12,12))

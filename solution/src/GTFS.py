@@ -1,18 +1,18 @@
 import pandas as pd
 from datetime import datetime, timedelta
 import requests, zipfile, io
+from functools import cache
 
 pd.set_option('display.max_columns', None)
 
 URL = "https://ckan.multimediagdansk.pl/dataset/c24aa637-3619-4dc2-a171-a23eec8f2172/resource/30e783e4-2bec-4a7d-bb22-ee3e3b26ca96/download/gtfsgoogle.zip"
 
-
+@cache
 def prepare_data():
-    global result
     global URL
-    r = requests.get(URL)
-    z = zipfile.ZipFile(io.BytesIO(r.content))
-    z.extractall("data")
+    # r = requests.get(URL)
+    # z = zipfile.ZipFile(io.BytesIO(r.content))
+    # z.extractall("data")
 
     df_stops = pd.read_csv('data/stops.txt')
     df_routes = pd.read_csv('data/routes.txt')
@@ -61,6 +61,12 @@ def prepare_data():
 
     result['arrival_time'] = result['arrival_time'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
     result['departure_time'] = result['departure_time'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
+
+    result.to_csv("data/processed_data.csv", date_format="%Y-%m-%d %H:%M")
+
+def load_data():
+    global result
+    result = pd.read_csv('data/processed_data.csv')
 
 
 def get_all_departures_from_bus_stop(stop_id: int, arrival_time: str):
