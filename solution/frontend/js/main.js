@@ -32,7 +32,7 @@ const startSearch = async (startingPoint, endingPoint) => {
 }
 
 const getSearchResult = (id) => new Promise((resolve, reject) => {
-    const TIMEOUT_MAX = 30_000;
+    const TIMEOUT_MAX = 500;
     const QUERY_TIME = 50;
     const MAX_COUNT = Math.floor(TIMEOUT_MAX / QUERY_TIME);
 
@@ -155,4 +155,6 @@ document.onreadystatechange = () => {
     const time_element = document.getElementById("current-time");
     const date = new Date();
     time_element.value = `${date.getHours()}:${date.getMinutes()}`
+
+    setInterval(mapController.update, 500);
 }

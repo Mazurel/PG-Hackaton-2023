@@ -54,7 +54,7 @@ def start_processing(starting_point: tuple[float, float],
         current_result.processing = False
         current_result.points = [
             Point.from_coords(starting_point, "Starting Point"),
-            Point.from_coords(((starting_point[0] + ending_point[0]) / 2 + 0.1, (starting_point[1] + ending_point[1]) / 2), "Man in the middle"),
+            Point.from_coords(((starting_point[0] + ending_point[0]) / 2 + 0.01, (starting_point[1] + ending_point[1]) / 2), "Man in the middle"),
             Point.from_coords(ending_point, "Ending Point")
         ]
 
@@ -91,7 +91,7 @@ def search_points():
 
 
 @app.route("/api/query/<index>", methods=["GET"])
-def quey_points(index: str):
+def query_points(index: str):
     '''
     Query most optimal path, started by `/api/search` POST request.
     '''

@@ -1,4 +1,7 @@
 body {
+    font-family: 'Lato', sans-serif;
+    font-weight: 400;
+    font-style: bold;
     margin: 0px;
     padding: 0px;
 }
@@ -19,9 +22,19 @@ html, body, #map {
     height: 10%;
     align-items: center;
     align-content: center;
+    background-color: #F6E7CB;
+    color: #072AC8;
+    box-shadow: inset 0px -5px 10px #DD9787;
 }
 
 .input {
     display: block;
     margin-left: 20px;
+}
+
+#current-time {
+    font-family: 'Lato', sans-serif;
+    font-style: bold;
+    font-size: medium;
+    color: #090C08;
 }
