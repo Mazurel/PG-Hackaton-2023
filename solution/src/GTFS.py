@@ -1,6 +1,8 @@
 import pandas as pd
 from datetime import datetime, timedelta
 import requests, zipfile, io
+import os.path
+from os import path
 
 pd.set_option('display.max_columns', None)
 
@@ -9,10 +11,22 @@ class GTFS:
     URL = "https://ckan.multimediagdansk.pl/dataset/c24aa637-3619-4dc2-a171-a23eec8f2172/resource/30e783e4-2bec-4a7d-bb22-ee3e3b26ca96/download/gtfsgoogle.zip"
     result = pd.DataFrame()
 
+    def download_data(self):
+        if not (path.exists("data/stops.txt") &
+                path.exists("data/routes.txt") &
+                path.exists("data/stop_times.txt") &
+                path.exists("data/trips.txt") &
+                path.exists("data/shapes.txt") &
+                path.exists("data/calendar_dates.txt")):
+            r = requests.get(self.URL)
+            z = zipfile.ZipFile(io.BytesIO(r.content))
+            z.extractall("data")
+
     def prepare_data(self):
-        r = requests.get(self.URL)
-        z = zipfile.ZipFile(io.BytesIO(r.content))
-        z.extractall("data")
+        """
+        Prepare needed data and saves it to csv located at data/processed_data.csv
+        """
+        self.download_data()
 
         df_stops = pd.read_csv('data/stops.txt')
         df_routes = pd.read_csv('data/routes.txt')
@@ -67,9 +81,19 @@ class GTFS:
         result.to_csv("data/processed_data.csv", date_format="%Y-%m-%d %H:%M")
 
     def load_data(self):
+        """
+        Load data from data/processed_data.csv to variable
+        """
         self.result = pd.read_csv('data/processed_data.csv')
 
     def get_all_departures_from_bus_stop(self, stop_id: int, arrival_time: datetime):
+        """
+        Get all departures from specific bus stop
+
+        :param stop_id: int
+        :param arrival_time: datetime
+        :return: all_deparutres
+        """
         # time = datetime.strptime(arrival_time, '%Y-%m-%d %H:%M')
         time = arrival_time
         all_deparutres = self.result[(self.result["stop_id"] == stop_id) &
@@ -78,7 +102,13 @@ class GTFS:
                                      ~((self.result['drop_off_type'] == 0) & (self.result['pickup_type'] == 1))]
         return all_deparutres
 
-    def trip_stops(self, trip_id, stop_id):
+    def trip_stops(self, trip_id: str, stop_id: int):
+        """
+        Get next bus stops from trip
+        :param trip_id: str
+        :param stop_id: int
+        :return:
+        """
         x = pd.DataFrame(self.result[self.result['trip_id'] == trip_id].sort_values(by=['stop_sequence']))
         x = x[x['stop_sequence'] >= x[x['stop_id'] == stop_id]['stop_sequence'].values[0]]
         stops = pd.concat(
@@ -86,7 +116,14 @@ class GTFS:
              x['arrival_time']], axis=1)
         return stops
 
-    def get_fastest_busses_from_bus_stop(self, stop_id, time):
+    def get_fastest_busses_from_bus_stop(self, stop_id: int, time: datetime):
+        """
+        Get 6 fastest busses from bus stop
+
+        :param stop_id:
+        :param time:
+        :return:
+        """
         tmp = self.get_all_departures_from_bus_stop(stop_id, time)
         trip_idser = tmp.sort_values(by=['departure_time'])['trip_id'].iloc[:6].reset_index(drop=True)
         a = pd.DataFrame()
