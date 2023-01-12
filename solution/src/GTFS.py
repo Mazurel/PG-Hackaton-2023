@@ -73,12 +73,17 @@ class GTFS:
                 int(x[11:13]) - 24) + x[
                                       13:] if int(
                 x[11:13]) >= 24 else x)
+        print(result['departure_time'][0])
 
-        result['arrival_time'] = result['arrival_time'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
-        result['departure_time'] = result['departure_time'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
+        result['arrival_time'] = pd.to_datetime(result['arrival_time'], format="%Y-%m-%d %H:%M",
+                                                infer_datetime_format=True)
+        result['departure_time'] = pd.to_datetime(result['departure_time'], format="%Y-%m-%d %H:%M",
+                                                  infer_datetime_format=True)
+        print(type(result['departure_time']))
 
         self.result = result
-        result.to_csv("data/processed_data.csv", date_format="%Y-%m-%d %H:%M")
+        if not path.exists("data/processed_data.csv"):
+            result.to_csv("data/processed_data.csv", date_format="%Y-%m-%d %H:%M")
 
     def load_data(self):
         """
@@ -130,3 +135,7 @@ class GTFS:
         for i in range(0, len(trip_idser)):
             a = pd.concat([a, self.trip_stops(trip_idser[i], stop_id)])
         return a
+
+
+gtfs = GTFS()
+gtfs.prepare_data()
