@@ -1,5 +1,5 @@
 from pathlib import Path
-from datetime import time
+from datetime import time, timedelta, datetime
 import math
 from collections import deque
 
@@ -75,7 +75,7 @@ class Algorithm:
             self.update_best_route(end_point, walk_time)
 
         # dataframe with all available routes from given stop
-        all_routes = get_fastest_busses_from_bus_stop(stop_coords, f"2023-01-13 {start_time.hour}:{start_time.minute}")
+        all_routes = get_fastest_busses_from_bus_stop(stop_coords, start_time)
         print(all_routes.columns)
         closest_stops = self._get_closest_stop(end_point, all_routes, num_stops=self.num_of_closest_stops, return_all=True)
 
@@ -194,11 +194,11 @@ class Algorithm:
         add_minutes = math.ceil((walking_time * 60 + self.time_delay) % 60)
         add_hours = math.floor((walking_time * 60 + self.time_delay) / 60)
         
-        return time(start_time.hour + add_hours, start_time.minute + add_minutes)
+        return start_time + timedelta(hours=add_hours, minutes=add_minutes)
 
 if __name__ == "__main__":
     prepare_data()
     # load_data()
     algo = Algorithm()
     # print(algo.stops)
-    algo.get_route((54.381709857835816, 18.591475549238343), (54.381709857835816, 18.591475549238343), start_time=time(12,12))
+    algo.get_route((54.381709857835816, 18.591475549238343), (54.381709857835816, 18.591475549238343), start_time=datetime(2023, 1, 13, 21, 15))
