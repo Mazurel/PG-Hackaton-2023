@@ -89,7 +89,8 @@ class GTFS:
             print("data/processed_data.csv already exists")
 
     def load_data(self):
-        self.result = pd.read_csv('data/processed_data.csv', parse_dates=['arrival_time', 'departure_time'], infer_datetime_format=True)
+        self.result = pd.read_csv('data/processed_data.csv', parse_dates=['arrival_time', 'departure_time'],
+                                  infer_datetime_format=True)
         print(self.result.columns)
 
     def apply_time_limit(self, arrivial_time: datetime, hours: int):
@@ -135,6 +136,15 @@ class GTFS:
         """
         tmp = self.get_all_departures_from_bus_stop(stop_id, time)
         trip_idser = tmp.sort_values(by=['departure_time'])['trip_id'].iloc[:6].reset_index(drop=True)
+        num = trip_idser.apply(lambda x: x.split('_')[2].split('-')[0])
+        bus = set()
+        index_to_drop = []
+        for i in range(len(num)):
+            if num[i] in bus:
+                index_to_drop.append(i)
+            bus.add(num[i])
+        trip_idser.drop(index_to_drop, inplace=True)
+        trip_idser.reset_index(inplace=True, drop=True)
         a = pd.DataFrame()
         for i in range(0, len(trip_idser)):
             a = pd.concat([a, self.trip_stops(trip_idser[i], stop_id)])
@@ -147,6 +157,7 @@ class GTFS:
             [x['route_id'], x['stop_id'], x['stop_name'], x['stop_lat'], x['stop_lon'], x['departure_time'],
              x['arrival_time']], axis=1)
         return stops
+
 
 if __name__ == "__main__":
     GTFS().prepare_data()
