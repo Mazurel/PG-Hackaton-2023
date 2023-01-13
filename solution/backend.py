@@ -4,7 +4,7 @@ from flask_cors import CORS
 from threading import Thread
 from dataclasses import dataclass
 from typing import Optional
-from datetime import time
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -49,8 +49,14 @@ def start_processing(starting_point: tuple[float, float],
     global results
     def process():
         # TODO: Optimize here !
-        current_time = time(settings["time"]["hours"],
-                            settings["time"]["minutes"])
+        current_time = datetime(
+            year = settings["time"]["year"],
+            month = settings["time"]["month"],
+            day = settings["time"]["day"],
+            hour = settings["time"]["hour"],
+            minute = settings["time"]["minute"]
+        )
+        print(current_time)
         current_result.processing = False
         current_result.points = [
             Point.from_coords(starting_point, "Starting Point"),
