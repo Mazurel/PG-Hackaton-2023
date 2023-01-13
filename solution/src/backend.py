@@ -63,8 +63,8 @@ def start_processing(starting_point: tuple[float, float],
             if len(algo.best_route) == 0:
                 return None
             res = [Point.from_coords(starting_point, "Starting Point")]
-            for lat, lon, name, arrr in algo.best_route[["stop_lat", "stop_lon", "stop_name", "arrival_time"]].values.tolist():
-                res.append(Point.from_coords((lat, lon), f"{name}</br>{arrr}"))
+            for lat, lon, name, arrr, route in algo.best_route[["stop_lat", "stop_lon", "stop_name", "arrival_time", "route_id"]].values.tolist():
+                res.append(Point.from_coords((lat, lon), f"{route} - {name}</br>{arrr}"))
             res.append(Point.from_coords(ending_point, "Ending Point"))
             return res
         
