@@ -30,7 +30,6 @@ class Algorithm:
         self.gtfs = GTFS()
         self.gtfs.load_data()
 
-        self.gtfs = GTFS()
 
     def get_route(self, point_A, point_B, **settings):
         """Create a route from point A to point B,
@@ -41,6 +40,8 @@ class Algorithm:
             point_B (tuple) - x, y coordinates of point B
             settings (list) - additional settings: starting time, number of switches etc.
         """
+
+        self.gtfs.apply_time_limit(settings['start_time'], 24)
 
         # find closest stops in walking distance
         closest_stops = self._get_closest_stop(point_A, self.stops, self.num_of_closest_stops_to_start)
@@ -216,8 +217,8 @@ class Algorithm:
         return start_time + timedelta(hours=add_hours, minutes=add_minutes)
 
 if __name__ == "__main__":
-    gtfs = GTFS()
-    gtfs.load_data()
+    # gtfs = GTFS()
+    # gtfs.load_data()
     algo = Algorithm()
 
     # mandu -> gb
