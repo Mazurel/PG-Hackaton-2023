@@ -60,9 +60,13 @@ def start_processing(starting_point: tuple[float, float],
         algo = Algorithm(gtfs)
 
         def get_points():
-            return [Point.from_coords(starting_point, "Starting Point")] + \
-                   [Point.from_coords(point, "a") for point in algo.get_best_route()] + \
-                   [Point.from_coords(ending_point, "Ending Point")]
+            res = [Point.from_coords(starting_point, "Starting Point")]
+            if len(algo.best_route) > 0:
+                for lat, lon, name, arrr in algo.best_route[["stop_lat", "stop_lon", "stop_name", "arrival_time"]].values.tolist():
+                    res.append(Point.from_coords((lat, lon), f"{name}\n{arrr}"))
+            res.append(Point.from_coords(ending_point, "Ending Point"))
+
+            return res
         
         def kill_thread():
             algo.kill = True

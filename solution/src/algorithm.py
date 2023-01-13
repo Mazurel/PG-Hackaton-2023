@@ -15,8 +15,8 @@ class Algorithm:
         self.time_delay = 2.5
         self.num_of_closest_stops_to_start = 5
         self.num_of_closest_stops = 10
-        self.distance_criterion = 2
-        self.max_stack_len = 4
+        self.distance_criterion = 1
+        self.max_stack_len = 5
 
         # Stack contains:
         #   - stop_id
