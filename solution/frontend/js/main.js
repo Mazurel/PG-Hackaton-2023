@@ -71,6 +71,7 @@ class MapController {
         this._tooltips = [];
         this._next_first = true;
         this._final = false;
+        this._show_tooltips = false;
     }
 
     initialize_map() {
@@ -104,7 +105,13 @@ class MapController {
             }
         };
 
-        setInterval(() => {this.update()}, 1_500);
+        const button2 = document.getElementById("showy");
+        button2.onclick = () => {
+            this._show_tooltips = !this._show_tooltips;
+            this._final = false;
+        }
+
+        setInterval(() => { this.update() }, 1_500);
     }
 
     clear() {
@@ -128,9 +135,11 @@ class MapController {
 
                 this._checkpoints = points.map((pt) => L.marker(pt).addTo(this.map));
 
-                this._tooltips = points.map((pt) =>
-                    L.tooltip().setLatLng(pt).setContent(pt.name).addTo(this.map)
-                );
+                if (this._show_tooltips) {
+                    this._tooltips = points.map((pt) =>
+                        L.tooltip().setLatLng(pt).setContent(pt.name).addTo(this.map)
+                    );
+                }
 
                 let polys = [];
                 for (let i = 0; i < points.length - 1; i++) {
@@ -139,7 +148,7 @@ class MapController {
                         points[i + 1]
                     ])
                 }
-    
+
                 this._connection_lines = polys.map(pl => L.polyline(pl).addTo(this.map));
             })
         }
