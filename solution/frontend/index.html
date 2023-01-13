@@ -1,10 +1,9 @@
 <!doctype html>
 <html>
-
 <head>
     <title>BEST Hackaton</title>
-    <meta name="description" content="Our first page">
-    <meta name="keywords" content="html tutorial template">
+    <meta charset="UTF-8">
+    <link href='http://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
     integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
     crossorigin=""/>
@@ -12,15 +11,15 @@
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
      integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
      crossorigin=""></script>
-    <script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/Leaflet.fullscreen.min.js'></script>
-    <link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-fullscreen/v1.0.1/leaflet.fullscreen.css/'>
     <script src="js/main.js"></script>
 </head>
 
 <body>
     <div id="input-container">
-        <h3 class="input">Current time:</h3>
-        <input id="current-time" name="current-time" type="time" class="input">
+        <h1 class="input" color="green">MAPA DOJAZDÓW</h1>
+        <div class="input"></div>
+        <h3 class="input">Czas:</h3>
+        <input id="current-time" name="current-time" type="datetime-local" class="input">
     </div>
     <div id="map"></div>
 </body>

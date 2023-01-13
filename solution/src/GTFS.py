@@ -90,6 +90,12 @@ class GTFS:
 
     def load_data(self):
         self.result = pd.read_csv('data/processed_data.csv', parse_dates=['arrival_time', 'departure_time'], infer_datetime_format=True)
+        print(self.result.columns)
+
+    def apply_time_limit(self, arrivial_time: datetime, hours: int):
+        self.faster_result = self.result[(self.result['departure_time'] >= arrivial_time) & \
+                                         (self.result['departure_time'] <= arrivial_time + timedelta(hours=hours)) & \
+                                         ~((self.result['drop_off_type'] == 0) & (self.result['pickup_type'] == 1))]
 
     def get_all_departures_from_bus_stop(self, stop_id: int, arrival_time: datetime):
         """
@@ -101,10 +107,8 @@ class GTFS:
         """
         # time = datetime.strptime(arrival_time, '%Y-%m-%d %H:%M')
         time = arrival_time
-        all_deparutres = self.result[(self.result["stop_id"] == stop_id) &
-                                     (self.result['departure_time'] >= time) & (
-                                             self.result['departure_time'] <= time + timedelta(hours=2)) &
-                                     ~((self.result['drop_off_type'] == 0) & (self.result['pickup_type'] == 1))]
+        all_deparutres = self.faster_result[(self.faster_result["stop_id"] == stop_id) &
+                                            (self.faster_result['departure_time'] <= time + timedelta(hours=2))]
         return all_deparutres
 
     def trip_stops(self, trip_id: str, stop_id: int):
@@ -143,3 +147,6 @@ class GTFS:
             [x['route_id'], x['stop_id'], x['stop_name'], x['stop_lat'], x['stop_lon'], x['departure_time'],
              x['arrival_time']], axis=1)
         return stops
+
+if __name__ == "__main__":
+    GTFS().prepare_data()

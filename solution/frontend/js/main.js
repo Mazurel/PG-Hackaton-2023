@@ -7,10 +7,13 @@ const latLngToCoords = (pos) => [
 
 const getCurrentTime = () => {
     const time_element = document.getElementById("current-time");
-    const [hours, minutes] = time_element.value.split(":");
+    const selected_date = time_element.valueAsDate;
     return {
-        hours: parseInt(hours),
-        minutes: parseInt(minutes)
+        year: selected_date.getFullYear(),
+        month: selected_date.getMonth() + 1,
+        day: selected_date.getDate(),
+        hour: selected_date.getHours(),
+        minute: selected_date.getMinutes(),
     }
 }
 
@@ -32,7 +35,7 @@ const startSearch = async (startingPoint, endingPoint) => {
 }
 
 const getSearchResult = (id) => new Promise((resolve, reject) => {
-    const TIMEOUT_MAX = 30_000;
+    const TIMEOUT_MAX = 500;
     const QUERY_TIME = 50;
     const MAX_COUNT = Math.floor(TIMEOUT_MAX / QUERY_TIME);
 
@@ -93,6 +96,8 @@ class MapController {
     async update() {
         if (this.start_position != null && this.end_position != null) {
             const id = await startSearch(this.start_position, this.end_position)
+            console.log(id)
+            return
             const points = await getSearchResult(id);
 
             this._checkpoints = points.map((pt) => L.marker(pt).addTo(this.map).bindPopup(pt.name));
@@ -154,5 +159,9 @@ document.onreadystatechange = () => {
     mapController.initialize_map()
     const time_element = document.getElementById("current-time");
     const date = new Date();
-    time_element.value = `${date.getHours()}:${date.getMinutes()}`
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+    time_element.valueAsDate = date
+
+    setInterval(mapController.update, 500);
 }

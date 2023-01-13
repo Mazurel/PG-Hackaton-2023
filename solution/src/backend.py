@@ -4,7 +4,11 @@ from flask_cors import CORS
 from threading import Thread
 from dataclasses import dataclass
 from typing import Optional
-from datetime import time
+from datetime import datetime
+import time
+
+from GTFS import GTFS
+from algorithm import Algorithm
 
 app = Flask(__name__)
 CORS(app)
@@ -33,7 +37,7 @@ class Point:
 @dataclass
 class Result:
     processing: bool
-    points: Optional[list[Point]]
+    points: Optional[callable]
 
 
 results: dict[int, Result] = {}
@@ -48,15 +52,26 @@ def start_processing(starting_point: tuple[float, float],
     '''
     global results
     def process():
-        # TODO: Optimize here !
-        current_time = time(settings["time"]["hours"],
-                            settings["time"]["minutes"])
+        time.sleep(1)
+        gtfs = GTFS()
+        gtfs.load_data()
+        algo = Algorithm()
+
+        def get_points():
+            return [Point.from_coords(point, "a") for point in algo.get_best_route()] ++ [
+                Point.from_coords(ending_point, "Ending Point")
+            ]
+        current_result.points = get_points
+
+        current_time = datetime(
+            year = settings["time"]["year"],
+            month = settings["time"]["month"],
+            day = settings["time"]["day"],
+            hour = settings["time"]["hour"],
+            minute = settings["time"]["minute"]
+        )
+        algo.get_route(starting_point, ending_point, start_time=current_time)
         current_result.processing = False
-        current_result.points = [
-            Point.from_coords(starting_point, "Starting Point"),
-            Point.from_coords(((starting_point[0] + ending_point[0]) / 2 + 0.1, (starting_point[1] + ending_point[1]) / 2), "Man in the middle"),
-            Point.from_coords(ending_point, "Ending Point")
-        ]
 
     try:
         next_id = max(results.keys()) + 1
@@ -66,7 +81,7 @@ def start_processing(starting_point: tuple[float, float],
         processing=True,
         points=None
     )
-    Thread(target=process).run()
+    Thread(target=process).start()
 
     results[next_id] = current_result
     return next_id
@@ -91,7 +106,7 @@ def search_points():
 
 
 @app.route("/api/query/<index>", methods=["GET"])
-def quey_points(index: str):
+def query_points(index: str):
     '''
     Query most optimal path, started by `/api/search` POST request.
     '''
@@ -100,7 +115,7 @@ def quey_points(index: str):
         result = results[int(index)]
         return {
             "processing": result.processing,
-            "points": [ point.to_dict() for point in result.points ]
+            "points": [ point.to_dict() for point in result.points() ] if result.points is not None else []
         }
     except KeyError as err:
         abort(400, f"'{err}' was not queried before.")
