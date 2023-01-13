@@ -35,7 +35,7 @@ class GTFS:
         df_routes = pd.read_csv('data/routes.txt')
         df_stoptimes = pd.read_csv('data/stop_times.txt')
         df_trips = pd.read_csv('data/trips.txt')
-        df_shapes = pd.read_csv('data/shapes.txt')
+        # df_shapes = pd.read_csv('data/shapes.txt')
         df_dates = pd.read_csv('data/calendar_dates.txt')
         print("Loading completed")
 
@@ -53,14 +53,6 @@ class GTFS:
         result = result.drop(columns=columns_to_drop)
 
         print("Process times")
-        result['arrival_time_minutes'] = result['arrival_time'].map(lambda x: int(x[3:5]))
-        result['arrival_time_hours'] = result['arrival_time'].map(lambda x: int(x[:2]))
-        result['departure_time_minutes'] = result['departure_time'].map(lambda x: int(x[3:5]))
-        result['departure_time_hours'] = result['departure_time'].map(lambda x: int(x[:2]))
-
-        result['arrival_time_hours'] = result['arrival_time_hours'].apply(lambda x: x - 24 if x >= 24 else x)
-        result['departure_time_hours'] = result['departure_time_hours'].apply(lambda x: x - 24 if x >= 24 else x)
-
         result.date = result.date.astype('str')
         result['month'] = result['date'].map(lambda x: x[4:6])
         result['day'] = result['date'].map(lambda x: x[6:8])
