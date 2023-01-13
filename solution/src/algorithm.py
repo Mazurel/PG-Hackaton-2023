@@ -59,7 +59,7 @@ class Algorithm:
 
             time_at_first_stop = self.time_to_stop(settings['start_time'], walk_time)
 
-            self.route_stack.append([closest_stops[i], None,  time_at_first_stop])
+            self.route_stack.append([closest_stops[i], None,  time_at_first_stop, []])
             self._check_stop(closest_stops[i], point_A, point_B, time_at_first_stop)
             self.route_stack.pop()
             
@@ -78,10 +78,6 @@ class Algorithm:
             return
         if len(self.route_stack) > self.max_stack_len:
             return
-
-        
-        # for i, val in enumerate(self.route_stack[:-1]):
-        #     if stop_id == val[0] and 
 
         # get coords from stop id
         stop_coords = self._stop_id_to_coords(stop_id)
@@ -103,10 +99,12 @@ class Algorithm:
             return
 
         for i in range(closest_stops.shape[0]):
+            route_id = closest_stops.loc[i, ['route_id']].values[0]
             self.route_stack.append([
                 int(closest_stops.loc[i, ['stop_id']].values[0]),
-                int(closest_stops.loc[i, ['route_id']].values[0]),
-                closest_stops.loc[i, ['arrival_time']].values[0]])
+                int(route_id),
+                closest_stops.loc[i, ['arrival_time']].values[0],
+                all_routes[all_routes['route_id'] == route_id]])
             
             # print(f"stack size: {len(self.route_stack)}")
 
@@ -134,21 +132,39 @@ class Algorithm:
         destination_arrival_time = self.time_to_stop(last_stop_arrival, walk_time)
         staring_point_time = current_route[0][2]
         route_time = destination_arrival_time - staring_point_time
-        print(f"Found possible route: {current_route}, route_time: {route_time}")
+        print(f"Found possible route, route_time: {route_time}")
         if route_time.seconds / 60  < self.best_time:
             self.best_route = self.prepare_best_route(current_route)
             self.best_time = route_time.seconds / 60
-            print(f"updating best route, stack size: {len(self.route_stack)}, best time: {self.best_time}")
+            print(f"updating best route, best route: {self.best_route}, best time: {self.best_time}")
 
     def prepare_best_route(self, current_route):
+        """best route - [lat, lon, name, datetime]"""
+        best_route = []
+        first_stop = current_route[0][0]
+        first_lat, first_lon = self._stop_id_to_coords(first_stop)
+        first_name = self._stop_id_to_name(first_stop)
+        # best_route.append([first_lat, first_lon, first_name, current_route[0][2]])
 
-        return current_route
+        for point in current_route[1:]:
+            route = point[3].reset_index(drop=True)
+            last_ind = int(route[route['stop_id'] == point[0]].index.values)
+            best_route.append(route.iloc[:last_ind+1])
+
+        final = pd.concat(best_route, axis=0)
+        # print(final)
+        return final
 
     def get_best_route(self):
         if len(self.best_route) <= 0:
             return []
 
         return [self._stop_id_to_coords(route[0]) for route in self.best_route]
+
+    def _stop_id_to_name(self, stop_id):
+        # print(self.stops.columns)
+        name = self.stops.loc[self.stops['stop_id'] == int(stop_id), ['stop_name']].values[0]
+        return name
 
     def _get_closest_stop(self, point, stops, num_stops=1, return_all=False):
         """Get closest stop to specified point
@@ -194,7 +210,7 @@ class Algorithm:
         """Load coordinates of all the stops from file"""
 
         file = Path("data/stops.txt")       
-        return pd.read_csv(file).drop(columns=["stop_code", "stop_name"])
+        return pd.read_csv(file).drop(columns=["stop_code"])
 
     def _get_walking_distance(self, start, stop):
         """Get distance between two points
