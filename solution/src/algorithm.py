@@ -17,7 +17,7 @@ class Algorithm:
         self.num_of_closest_stops_to_start = 5
         self.num_of_closest_stops = 20
         self.distance_criterion = 2
-        self.max_stack_len = 6
+        self.max_stack_len = 15
 
         # Stack contains:
         #   - stop_id
