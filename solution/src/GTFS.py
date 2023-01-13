@@ -108,7 +108,8 @@ class GTFS:
         """
         # time = datetime.strptime(arrival_time, '%Y-%m-%d %H:%M')
         time = arrival_time
-        all_deparutres = self.faster_result[(self.faster_result["stop_id"] == stop_id) &
+        all_deparutres = self.faster_result[(self.faster_result['departure_time'] >= time) &
+                                            (self.faster_result["stop_id"] == stop_id) &
                                             (self.faster_result['departure_time'] <= time + timedelta(hours=2))]
         return all_deparutres
 

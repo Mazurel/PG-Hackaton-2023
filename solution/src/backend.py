@@ -58,7 +58,8 @@ def start_processing(starting_point: tuple[float, float],
         algo = Algorithm()
 
         def get_points():
-            return [Point.from_coords(point, "a") for point in algo.get_best_route()] ++ [
+            return [Point.from_coords(starting_point, "Starting Point")] + \
+                [Point.from_coords(point, "a") for point in algo.get_best_route()] + [
                 Point.from_coords(ending_point, "Ending Point")
             ]
         current_result.points = get_points

@@ -41,7 +41,7 @@ class Algorithm:
             settings (list) - additional settings: starting time, number of switches etc.
         """
 
-        self.gtfs.apply_time_limit(settings['start_time'], 24)
+        self.gtfs.apply_time_limit(settings['start_time'], 12)
 
         # find closest stops in walking distance
         closest_stops = self._get_closest_stop(point_A, self.stops, self.num_of_closest_stops_to_start)
@@ -58,6 +58,8 @@ class Algorithm:
             self.route_stack.append([closest_stops[i], None,  time_at_first_stop])
             self._check_stop(closest_stops[i], point_A, point_B, time_at_first_stop)
             self.route_stack.pop()
+        
+        print(f"Best route: {self.best_route}, best time: {self.best_time}")
 
     def _check_stop(self, stop_id, start_point, end_point, start_time):
         """Check available routes from current stop
@@ -127,10 +129,12 @@ class Algorithm:
         route_time = destination_arrival_time - staring_point_time
         print(f"Found possible route: {current_route}, route_time: {route_time}")
         if route_time.seconds / 60  < self.best_time:
-            self.best_route = current_route
+            self.best_route = self.prepare_best_route(current_route)
             self.best_time = route_time.seconds / 60
             print(f"updating best route, stack size: {len(self.route_stack)}, best time: {self.best_time}")
 
+    def prepare_best_route(self, current_route):
+        return current_route
 
     def get_best_route(self):
         if len(self.best_route) <= 0:

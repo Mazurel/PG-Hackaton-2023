@@ -1,5 +1,7 @@
 const URL = "http://localhost:3000"
 
+var ID = null;
+
 const latLngToCoords = (pos) => [
     pos.lat,
     pos.lng
@@ -36,7 +38,7 @@ const startSearch = async (startingPoint, endingPoint) => {
 
 const getSearchResult = (id) => new Promise((resolve, reject) => {
     const TIMEOUT_MAX = 500;
-    const QUERY_TIME = 50;
+    const QUERY_TIME = 100;
     const MAX_COUNT = Math.floor(TIMEOUT_MAX / QUERY_TIME);
 
     let count = 0;
@@ -48,7 +50,7 @@ const getSearchResult = (id) => new Promise((resolve, reject) => {
             res.json()
                 .then((data) => {
                     clearInterval(interval);
-                    resolve(data.points);
+                    resolve(data);
                 })
         })
         count += 1;
@@ -67,6 +69,7 @@ class MapController {
         this._connection_lines = []
         this._checkpoints = []
         this._next_first = true;
+        this._final = false;
     }
 
     initialize_map() {
@@ -81,9 +84,16 @@ class MapController {
 
         this.map.on("click", (ev) => {
             this.set_next_pos(latLngToCoords(ev.latlng));
-            this.clear();
-            this.update();
+            this._final = false;
+
+            if (this.start_position != null && this.end_position != null) {
+                startSearch(this.start_position, this.end_position).then((id) => {
+                    ID = id;
+                });
+            }
         })
+
+        setInterval(() => {this.update()}, 2_000);
     }
 
     clear() {
@@ -93,24 +103,28 @@ class MapController {
         this._checkpoints = []
     }
 
-    async update() {
-        if (this.start_position != null && this.end_position != null) {
-            const id = await startSearch(this.start_position, this.end_position)
-            console.log(id)
-            return
-            const points = await getSearchResult(id);
+    update() {
+        if (this.start_position != null && this.end_position != null && ID != null) {
+            getSearchResult(ID).then((data) => {
+                const points = data.points;
+                const processing = data.processing;
 
-            this._checkpoints = points.map((pt) => L.marker(pt).addTo(this.map).bindPopup(pt.name));
+                if (!processing && this._final) return;
+                this._final = true;
+                this.clear();
 
-            let polys = [];
-            for (let i = 0; i < points.length - 1; i++) {
-                polys.push([
-                    points[i],
-                    points[i + 1]
-                ])
-            }
+                this._checkpoints = points.map((pt) => L.marker(pt).addTo(this.map).bindPopup(pt.name));
 
-            this._connection_lines = polys.map(pl => L.polyline(pl).addTo(this.map))
+                let polys = [];
+                for (let i = 0; i < points.length - 1; i++) {
+                    polys.push([
+                        points[i],
+                        points[i + 1]
+                    ])
+                }
+    
+                this._connection_lines = polys.map(pl => L.polyline(pl).addTo(this.map));
+            })
         }
     }
 
@@ -162,6 +176,4 @@ document.onreadystatechange = () => {
     date.setSeconds(0);
     date.setMilliseconds(0);
     time_element.valueAsDate = date
-
-    setInterval(mapController.update, 500);
 }
