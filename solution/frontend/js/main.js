@@ -14,7 +14,7 @@ const getCurrentTime = () => {
         year: selected_date.getFullYear(),
         month: selected_date.getMonth() + 1,
         day: selected_date.getDate(),
-        hour: selected_date.getHours(),
+        hour: selected_date.getHours() - 1,
         minute: selected_date.getMinutes(),
     }
 }
@@ -66,8 +66,9 @@ class MapController {
     constructor() {
         this._starting_marker = null;
         this._ending_marker = null;
-        this._connection_lines = []
-        this._checkpoints = []
+        this._connection_lines = [];
+        this._checkpoints = [];
+        this._tooltips = [];
         this._next_first = true;
         this._final = false;
     }
@@ -89,6 +90,7 @@ class MapController {
         const button = document.getElementById("send-search");
         button.onclick = () => {
             this._final = false;
+            this.clear();
 
             if (this.start_position != null && this.end_position != null) {
                 startSearch(this.start_position, this.end_position).then((id) => {
@@ -109,7 +111,9 @@ class MapController {
         this._connection_lines.forEach(line => line.remove());
         this._connection_lines = [];
         this._checkpoints.forEach(chkpt => chkpt.remove());
-        this._checkpoints = []
+        this._checkpoints = [];
+        this._tooltips.forEach(tool => tool.remove());
+        this._tooltips = [];
     }
 
     update() {
@@ -122,7 +126,11 @@ class MapController {
                 this._final = true;
                 this.clear();
 
-                this._checkpoints = points.map((pt) => L.marker(pt).addTo(this.map).bindPopup(pt.name));
+                this._checkpoints = points.map((pt) => L.marker(pt).addTo(this.map));
+
+                this._tooltips = points.map((pt) =>
+                    L.tooltip().setLatLng(pt).setContent(pt.name).addTo(this.map)
+                );
 
                 let polys = [];
                 for (let i = 0; i < points.length - 1; i++) {
