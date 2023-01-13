@@ -30,6 +30,8 @@ class Algorithm:
         self.gtfs = GTFS()
         self.gtfs.load_data()
 
+        self.kill = False
+
 
     def get_route(self, point_A, point_B, **settings):
         """Create a route from point A to point B,
@@ -47,6 +49,8 @@ class Algorithm:
         closest_stops = self._get_closest_stop(point_A, self.stops, self.num_of_closest_stops_to_start)
 
         for i in range(closest_stops.shape[0]):
+            if self.kill:
+                return
             # get coords from stop id
             stop_coords = self._stop_id_to_coords(closest_stops[i])
 
@@ -58,10 +62,10 @@ class Algorithm:
             self.route_stack.append([closest_stops[i], None,  time_at_first_stop])
             self._check_stop(closest_stops[i], point_A, point_B, time_at_first_stop)
             self.route_stack.pop()
-        
+            
         print(f"Best route: {self.best_route}, best time: {self.best_time}")
 
-    def _check_stop(self, stop_id, start_point, end_point, start_time):
+    def _check_stop(self, stop_id, start_point, end_point, start_time, ):
         """Check available routes from current stop
         
         Parameters
@@ -70,8 +74,11 @@ class Algorithm:
             end_point (tuple)
             start_time (datetime.time) - time at which the trip starts
         """
+        if self.kill:
+            return
         if len(self.route_stack) > self.max_stack_len:
             return
+
         
         # for i, val in enumerate(self.route_stack[:-1]):
         #     if stop_id == val[0] and 
@@ -134,6 +141,7 @@ class Algorithm:
             print(f"updating best route, stack size: {len(self.route_stack)}, best time: {self.best_time}")
 
     def prepare_best_route(self, current_route):
+
         return current_route
 
     def get_best_route(self):
