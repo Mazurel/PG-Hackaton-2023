@@ -60,12 +60,12 @@ def start_processing(starting_point: tuple[float, float],
         algo = Algorithm(gtfs)
 
         def get_points():
+            if len(algo.best_route) == 0:
+                return None
             res = [Point.from_coords(starting_point, "Starting Point")]
-            if len(algo.best_route) > 0:
-                for lat, lon, name, arrr in algo.best_route[["stop_lat", "stop_lon", "stop_name", "arrival_time"]].values.tolist():
-                    res.append(Point.from_coords((lat, lon), f"{name}\n{arrr}"))
+            for lat, lon, name, arrr in algo.best_route[["stop_lat", "stop_lon", "stop_name", "arrival_time"]].values.tolist():
+                res.append(Point.from_coords((lat, lon), f"{name}</br>{arrr}"))
             res.append(Point.from_coords(ending_point, "Ending Point"))
-
             return res
         
         def kill_thread():
@@ -81,6 +81,7 @@ def start_processing(starting_point: tuple[float, float],
             hour = settings["time"]["hour"],
             minute = settings["time"]["minute"]
         )
+        print("Started looking for best route !")
         algo.get_route(starting_point, ending_point, start_time=current_time)
         current_result.processing = False
 
@@ -113,6 +114,7 @@ def search_points():
         settings = data["settings"]
         index = start_processing(starting_point, ending_point, settings)
         if index >= 1:
+            print("Killing old thread !")
             results[index - 1].kill_thread()
 
         return str(index)
@@ -128,9 +130,10 @@ def query_points(index: str):
     global results
     try:
         result = results[int(index)]
+        data = result.get_data()
         return {
             "processing": result.processing,
-            "points": [ point.to_dict() for point in result.get_data() ] if result.get_data is not None else []
+            "points": [ point.to_dict() for point in data ] if data is not None else []
         }
     except KeyError as err:
         abort(400, f"'{err}' was not queried before.")
