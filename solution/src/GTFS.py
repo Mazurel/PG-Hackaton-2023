@@ -67,7 +67,7 @@ class GTFS:
         result.to_csv("data/processed_data.csv", date_format="%Y-%m-%d %H:%M")
 
     def load_data(self):
-        self.result = pd.read_csv('data/processed_data.csv')
+        self.result = pd.read_csv('data/processed_data.csv', parse_dates=['arrival_time', 'departure_time'], infer_datetime_format=True)
 
     def get_all_departures_from_bus_stop(self, stop_id: int, arrival_time: datetime):
         # time = datetime.strptime(arrival_time, '%Y-%m-%d %H:%M')

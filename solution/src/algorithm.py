@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from geopy.distance import geodesic 
 
-from GTFS import load_data, prepare_data, get_fastest_busses_from_bus_stop
+from GTFS import GTFS
 
 class Algorithm:
     def __init__(self):
@@ -17,7 +17,7 @@ class Algorithm:
         self.num_of_closest_stops_to_start = 5
         self.num_of_closest_stops = 20
         self.distance_criterion = 2
-        self.max_stack_len = 10
+        self.max_stack_len = 6
 
         # Stack contains:
         #   - stop_id
@@ -75,19 +75,25 @@ class Algorithm:
             self.update_best_route(end_point, walk_time)
 
         # dataframe with all available routes from given stop
-        all_routes = get_fastest_busses_from_bus_stop(stop_coords, start_time)
-        print(all_routes.columns)
+        all_routes = gtfs.get_fastest_busses_from_bus_stop(stop_id, start_time)
+
         closest_stops = self._get_closest_stop(end_point, all_routes, num_stops=self.num_of_closest_stops, return_all=True)
 
         #TODO: solve problem with time
 
         for i in range(self.num_of_closest_stops):
-            self.route_stack.append([closest_stops[i, ['stop_id']], closest_stops[i, ['route_id']], closest_stops[i, ['stop_time']]])
+            self.route_stack.append([
+                int(closest_stops.loc[i, ['stop_id']].values[0]),
+                int(closest_stops.loc[i, ['route_id']].values[0]),
+                closest_stops.loc[i, ['arrival_time']].values[0]])
+            
+            # print(f"stack size: {len(self.route_stack)}")
+
             self._check_stop(
-                closest_stops[i, ['stop_id']], 
-                self._stop_id_to_coords(closest_stops[i, ['stop_id']]), 
+                int(closest_stops.loc[i, ['stop_id']].values[0]), 
+                self._stop_id_to_coords(int(closest_stops.loc[i, ['stop_id']].values[0])), 
                 end_point, 
-                closest_stops[i, ['stop_time']]
+                closest_stops.loc[i, ['arrival_time']].values[0]
             )
             self.route_stack.pop()
 
@@ -101,16 +107,8 @@ class Algorithm:
             (destination_arrival_time.hour == self.best_time.hour and destination_arrival_time.minute < self.best_time.minute):
             self.best_route = current_route
             self.best_time = destination_arrival_time
+            print(f"updating best route, stack size: {len(self.route_stack)}, best time: {self.best_time}")
 
-    def _check_routes(self, route, end_point):
-        """Find stop along current route that is the closest to destination point
-        
-        Parameters
-            route (DataFrame) - dataframe with all the stops along all routes
-            end_point (tuple) - coordinates of destination point
-        """
-
-        closest_stops = self._get_closest_stop(end_point, route, num_stops=self.num_of_closest_stops)
 
     def _get_closest_stop(self, point, stops, num_stops=1, return_all=False):
         """Get closest stop to specified point
@@ -130,17 +128,25 @@ class Algorithm:
         
         base_x = point[0] * np.ones_like(x)
         base_y = point[1] * np.ones_like(y)
-
+        # if return_all:
+        #     distance_with_ind = np.zeros((4, x.shape[0]))
+        # else:
         distance_with_ind = np.zeros((2, x.shape[0]))
 
-        distance_with_ind[0] = np.square(np.square(y - base_y) + np.square(x - base_x))
+        distance_with_ind[0] = np.sqrt(np.square(y - base_y) + np.square(x - base_x))
         distance_with_ind[1] = np.array(stops['stop_id'])
 
-        df = pd.DataFrame(distance_with_ind.T, columns=['distance', 'stop_id'])
+        if return_all:
+            # distance_with_ind[2] = np.array(stops['route_id'])
+            # distance_with_ind[3] = np.array(stops['arrival_time'])
+            df = pd.DataFrame(distance_with_ind.T, columns=['distance', 'stop_id'])
+            df = pd.concat([df, stops.loc[:,['route_id','arrival_time']].reset_index()], axis=1)
+        else:
+            df = pd.DataFrame(distance_with_ind.T, columns=['distance', 'stop_id'])
         sorted = df.sort_values('distance')
 
         if return_all:
-            return sorted.head(num_stops)
+            return sorted.head(num_stops).reset_index()
         return np.array(sorted.head(num_stops)['stop_id'], dtype=int)
         
 
@@ -175,9 +181,8 @@ class Algorithm:
         Returns
             (lat, lon) (tuple) - coordinates of the stop
         """
-        lat = float(self.stops.loc[self.stops['stop_id'] == stop_id]['stop_lat'])
-        lon = float(self.stops.loc[self.stops['stop_id'] == stop_id]['stop_lon'])
-        return lat, lon 
+        coords = self.stops.loc[self.stops['stop_id'] == int(stop_id), ['stop_lat', 'stop_lon']].values.squeeze()
+        return coords[0], coords[1]
     
     def time_to_stop(self, start_time, walking_time):
         """Add time to current time
@@ -197,8 +202,8 @@ class Algorithm:
         return start_time + timedelta(hours=add_hours, minutes=add_minutes)
 
 if __name__ == "__main__":
-    prepare_data()
-    # load_data()
+    gtfs = GTFS()
+    gtfs.load_data()
+    # gtfs.load_data()
     algo = Algorithm()
-    # print(algo.stops)
-    algo.get_route((54.381709857835816, 18.591475549238343), (54.381709857835816, 18.591475549238343), start_time=datetime(2023, 1, 13, 21, 15))
+    algo.get_route((54.40929967790238, 18.56702765741272), (54.381658077872665, 18.60563893543294), start_time=datetime(2023, 1, 13, 21, 15))
