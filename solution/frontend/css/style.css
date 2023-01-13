@@ -32,7 +32,7 @@ html, body, #map {
     margin-left: 20px;
 }
 
-#send-search {
+#send-search, #showy {
     padding: 3px;
     font-size: large;
 }
