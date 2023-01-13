@@ -10,7 +10,12 @@ Aplikacja sieciowa służąca do znalezienia najszybszej trasy pomiędzy dwoma p
 ![](https://github.com/Mazurel/PG-Hackaton-2023/blob/main/Images/mapa.png)
 Rys.1. Znaleziona trasa z Gdańsk Główny do portu lotniczego w Gdańsku.
 
+## Instrukcja
+
+Aby znaleźć trasę, należy LPM wybrać dwa dowolne punkty na mapie oraz zaznaczyć interesującą nas godzinę i dzień. Następnie kliknąć przycisk szukaj trasy.  
+
+
 ## Prezentacja działania programu:
-![](https://github.com/Mazurel/PG-Hackaton-2023/blob/main/Images/*.gif)
+![](https://github.com/Mazurel/PG-Hackaton-2023/blob/main/Images/prezentacja.gif)
 
 
