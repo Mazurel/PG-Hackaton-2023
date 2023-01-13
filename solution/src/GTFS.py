@@ -96,12 +96,8 @@ class GTFS:
         else:
             print("data/processed_data.csv already exists")
 
-
     def load_data(self):
-        """
-        Load data from data/processed_data.csv to variable
-        """
-        self.result = pd.read_csv('data/processed_data.csv')
+        self.result = pd.read_csv('data/processed_data.csv', parse_dates=['arrival_time', 'departure_time'], infer_datetime_format=True)
 
     def get_all_departures_from_bus_stop(self, stop_id: int, arrival_time: datetime):
         """
@@ -148,6 +144,10 @@ class GTFS:
             a = pd.concat([a, self.trip_stops(trip_idser[i], stop_id)])
         return a
 
-
-gtfs = GTFS()
-gtfs.prepare_data()
+    def trip_stops(self, trip_id, stop_id):
+        x = pd.DataFrame(self.result[self.result['trip_id'] == trip_id].sort_values(by=['stop_sequence']))
+        x = x[x['stop_sequence'] >= x[x['stop_id'] == stop_id]['stop_sequence'].values[0]]
+        stops = pd.concat(
+            [x['route_id'], x['stop_id'], x['stop_name'], x['stop_lat'], x['stop_lon'], x['departure_time'],
+             x['arrival_time']], axis=1)
+        return stops
