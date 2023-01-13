@@ -96,6 +96,8 @@ class MapController {
     async update() {
         if (this.start_position != null && this.end_position != null) {
             const id = await startSearch(this.start_position, this.end_position)
+            console.log(id)
+            return
             const points = await getSearchResult(id);
 
             this._checkpoints = points.map((pt) => L.marker(pt).addTo(this.map).bindPopup(pt.name));

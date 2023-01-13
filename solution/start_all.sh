@@ -2,7 +2,7 @@
 
 sh frontend/run_frontend.sh &
 FRONTEND_PID=$?
-flask --app backend run --port 3000 &
+cd src && flask --app backend run --port 3000 &
 BACKEND_PID=$?
 
 exit_all() {

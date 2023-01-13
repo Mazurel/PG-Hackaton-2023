@@ -143,3 +143,6 @@ class GTFS:
             [x['route_id'], x['stop_id'], x['stop_name'], x['stop_lat'], x['stop_lon'], x['departure_time'],
              x['arrival_time']], axis=1)
         return stops
+
+if __name__ == "__main__":
+    GTFS().prepare_data()
