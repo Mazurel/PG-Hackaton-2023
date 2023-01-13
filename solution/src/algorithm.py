@@ -7,17 +7,16 @@ import numpy as np
 import pandas as pd
 from geopy.distance import geodesic 
 
-from GTFS import GTFS
 
 class Algorithm:
-    def __init__(self):
+    def __init__(self, gtfs):
         self.stops = self._load_stops_from_file()
         self.human_speed = 4
         self.time_delay = 2.5
         self.num_of_closest_stops_to_start = 5
         self.num_of_closest_stops = 10
-        self.distance_criterion = 2
-        self.max_stack_len = 4
+        self.distance_criterion = 1
+        self.max_stack_len = 5
 
         # Stack contains:
         #   - stop_id
@@ -27,9 +26,7 @@ class Algorithm:
         self.best_route = []
         self.best_time = 1e18
 
-        self.gtfs = GTFS()
-        self.gtfs.load_data()
-
+        self.gtfs = gtfs
         self.kill = False
 
 

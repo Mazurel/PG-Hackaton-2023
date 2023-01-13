@@ -84,16 +84,25 @@ class MapController {
 
         this.map.on("click", (ev) => {
             this.set_next_pos(latLngToCoords(ev.latlng));
+        });
+
+        const button = document.getElementById("send-search");
+        button.onclick = () => {
             this._final = false;
 
             if (this.start_position != null && this.end_position != null) {
                 startSearch(this.start_position, this.end_position).then((id) => {
-                    ID = id;
+                    const tmp = parseInt(id);
+                    if (isNaN(tmp)) {
+                        console.error(id);
+                        return;
+                    }
+                    ID = tmp;
                 });
             }
-        })
+        };
 
-        setInterval(() => {this.update()}, 2_000);
+        setInterval(() => {this.update()}, 1_500);
     }
 
     clear() {
@@ -104,7 +113,7 @@ class MapController {
     }
 
     update() {
-        if (this.start_position != null && this.end_position != null && ID != null) {
+        if (this.start_position != null && this.end_position != null && ID != null && !isNaN(ID)) {
             getSearchResult(ID).then((data) => {
                 const points = data.points;
                 const processing = data.processing;
