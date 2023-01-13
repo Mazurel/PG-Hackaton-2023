@@ -32,6 +32,11 @@ html, body, #map {
     margin-left: 20px;
 }
 
+#send-search {
+    padding: 3px;
+    font-size: large;
+}
+
 #current-time {
     font-family: 'Lato', sans-serif;
     font-style: bold;

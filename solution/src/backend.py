@@ -10,6 +10,9 @@ import time
 from GTFS import GTFS
 from algorithm import Algorithm
 
+gtfs = GTFS()
+gtfs.load_data()
+
 app = Flask(__name__)
 CORS(app)
 
@@ -37,7 +40,8 @@ class Point:
 @dataclass
 class Result:
     processing: bool
-    points: Optional[callable]
+    kill_thread: Optional[callable] = None
+    get_data: Optional[callable] = None
 
 
 results: dict[int, Result] = {}
@@ -52,17 +56,19 @@ def start_processing(starting_point: tuple[float, float],
     '''
     global results
     def process():
-        time.sleep(1)
-        gtfs = GTFS()
-        gtfs.load_data()
-        algo = Algorithm()
+        time.sleep(0.1)
+        algo = Algorithm(gtfs)
 
         def get_points():
             return [Point.from_coords(starting_point, "Starting Point")] + \
-                [Point.from_coords(point, "a") for point in algo.get_best_route()] + [
-                Point.from_coords(ending_point, "Ending Point")
-            ]
-        current_result.points = get_points
+                   [Point.from_coords(point, "a") for point in algo.get_best_route()] + \
+                   [Point.from_coords(ending_point, "Ending Point")]
+        
+        def kill_thread():
+            algo.kill = True
+
+        current_result.get_data = get_points
+        current_result.kill_thread = kill_thread
 
         current_time = datetime(
             year = settings["time"]["year"],
@@ -80,7 +86,7 @@ def start_processing(starting_point: tuple[float, float],
         next_id = 0
     current_result = Result(
         processing=True,
-        points=None
+        get_data=None
     )
     Thread(target=process).start()
 
@@ -101,7 +107,11 @@ def search_points():
         starting_point = data["starting_point"]
         ending_point = data["ending_point"]
         settings = data["settings"]
-        return str(start_processing(starting_point, ending_point, settings))
+        index = start_processing(starting_point, ending_point, settings)
+        if index >= 1:
+            results[index - 1].kill_thread()
+
+        return str(index)
     except KeyError as err:
         abort(400, f"'{err}' argument was not specified.")
 
@@ -116,7 +126,7 @@ def query_points(index: str):
         result = results[int(index)]
         return {
             "processing": result.processing,
-            "points": [ point.to_dict() for point in result.points() ] if result.points is not None else []
+            "points": [ point.to_dict() for point in result.get_data() ] if result.get_data is not None else []
         }
     except KeyError as err:
         abort(400, f"'{err}' was not queried before.")
