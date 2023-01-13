@@ -15,9 +15,9 @@ class Algorithm:
         self.human_speed = 4
         self.time_delay = 2.5
         self.num_of_closest_stops_to_start = 5
-        self.num_of_closest_stops = 20
+        self.num_of_closest_stops = 15
         self.distance_criterion = 2
-        self.max_stack_len = 15
+        self.max_stack_len = 4
 
         # Stack contains:
         #   - stop_id
@@ -25,7 +25,10 @@ class Algorithm:
         #   - arrival_time
         self.route_stack = deque()
         self.best_route = []
-        self.best_time = time(23, 59)
+        self.best_time = 1e18
+
+        self.gtfs = GTFS()
+        self.gtfs.load_data()
 
     def get_route(self, point_A, point_B, **settings):
         """Create a route from point A to point B,
@@ -36,12 +39,11 @@ class Algorithm:
             point_B (tuple) - x, y coordinates of point B
             settings (list) - additional settings: starting time, number of switches etc.
         """
-        route = []
 
         # find closest stops in walking distance
         closest_stops = self._get_closest_stop(point_A, self.stops, self.num_of_closest_stops_to_start)
 
-        for i in range(0, self.num_of_closest_stops):
+        for i in range(closest_stops.shape[0]):
             # get coords from stop id
             stop_coords = self._stop_id_to_coords(closest_stops[i])
 
@@ -65,6 +67,7 @@ class Algorithm:
         """
         if len(self.route_stack) > self.max_stack_len:
             return
+
         # get coords from stop id
         stop_coords = self._stop_id_to_coords(stop_id)
 
@@ -75,13 +78,15 @@ class Algorithm:
             self.update_best_route(end_point, walk_time)
 
         # dataframe with all available routes from given stop
-        all_routes = gtfs.get_fastest_busses_from_bus_stop(stop_id, start_time)
-
+        all_routes = self.gtfs.get_fastest_busses_from_bus_stop(stop_id, start_time)
+        if all_routes.empty:
+            return
         closest_stops = self._get_closest_stop(end_point, all_routes, num_stops=self.num_of_closest_stops, return_all=True)
 
-        #TODO: solve problem with time
+        if int(closest_stops.loc[0, ['stop_id']].values[0]) == stop_id:
+            return
 
-        for i in range(self.num_of_closest_stops):
+        for i in range(closest_stops.shape[0]):
             self.route_stack.append([
                 int(closest_stops.loc[i, ['stop_id']].values[0]),
                 int(closest_stops.loc[i, ['route_id']].values[0]),
@@ -102,11 +107,12 @@ class Algorithm:
         current_route = list(self.route_stack)
         last_stop_arrival = current_route[-1][2]
         destination_arrival_time = self.time_to_stop(last_stop_arrival, walk_time)
-
-        if destination_arrival_time.hour < self.best_time.hour or \
-            (destination_arrival_time.hour == self.best_time.hour and destination_arrival_time.minute < self.best_time.minute):
+        staring_point_time = current_route[0][2]
+        route_time = destination_arrival_time - staring_point_time
+        print(f"Found possible route: {current_route}, route_time: {route_time}")
+        if route_time.seconds / 60  < self.best_time:
             self.best_route = current_route
-            self.best_time = destination_arrival_time
+            self.best_time = route_time.seconds / 60
             print(f"updating best route, stack size: {len(self.route_stack)}, best time: {self.best_time}")
 
 
@@ -202,8 +208,13 @@ class Algorithm:
         return start_time + timedelta(hours=add_hours, minutes=add_minutes)
 
 if __name__ == "__main__":
-    gtfs = GTFS()
-    gtfs.load_data()
+    
     # gtfs.load_data()
     algo = Algorithm()
-    algo.get_route((54.40929967790238, 18.56702765741272), (54.381658077872665, 18.60563893543294), start_time=datetime(2023, 1, 13, 21, 15))
+
+    # mandu -> gb
+    # algo.get_route((54.40929967790238, 18.56702765741272), (54.381658077872665, 18.60563893543294), start_time=datetime(2023, 1, 13, 21, 15))
+    # mandu -> hala oliwia
+    algo.get_route((54.40929967790238, 18.56702765741272), (54.401807374909154, 18.573207465058978), start_time=datetime(2023, 1, 13, 21, 15))
+
+    # algo.get_route((54.40929967790238, 18.56702765741272), (54.40929967790238, 18.56802765741272), start_time=datetime(2023, 1, 13, 21, 15))

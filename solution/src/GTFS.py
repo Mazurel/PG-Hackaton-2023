@@ -103,7 +103,7 @@ class GTFS:
         time = arrival_time
         all_deparutres = self.result[(self.result["stop_id"] == stop_id) &
                                      (self.result['departure_time'] >= time) & (
-                                             self.result['departure_time'] <= time + timedelta(hours=24)) &
+                                             self.result['departure_time'] <= time + timedelta(hours=2)) &
                                      ~((self.result['drop_off_type'] == 0) & (self.result['pickup_type'] == 1))]
         return all_deparutres
 
