@@ -15,7 +15,7 @@ class Algorithm:
         self.human_speed = 4
         self.time_delay = 2.5
         self.num_of_closest_stops_to_start = 5
-        self.num_of_closest_stops = 15
+        self.num_of_closest_stops = 10
         self.distance_criterion = 2
         self.max_stack_len = 4
 
@@ -23,7 +23,7 @@ class Algorithm:
         #   - stop_id
         #   - route_id
         #   - arrival_time
-        self.route_stack = deque()
+        self.route_stack = []
         self.best_route = []
         self.best_time = 1e18
 
@@ -70,6 +70,9 @@ class Algorithm:
         """
         if len(self.route_stack) > self.max_stack_len:
             return
+        
+        # for i, val in enumerate(self.route_stack[:-1]):
+        #     if stop_id == val[0] and 
 
         # get coords from stop id
         stop_coords = self._stop_id_to_coords(stop_id)
@@ -85,6 +88,7 @@ class Algorithm:
         if all_routes.empty:
             return
         closest_stops = self._get_closest_stop(end_point, all_routes, num_stops=self.num_of_closest_stops, return_all=True)
+        closest_stops = self._get_unique(closest_stops)
 
         if int(closest_stops.loc[0, ['stop_id']].values[0]) == stop_id:
             return
@@ -104,6 +108,15 @@ class Algorithm:
                 closest_stops.loc[i, ['arrival_time']].values[0]
             )
             self.route_stack.pop()
+    
+    def _get_unique(self, stops):
+        """Get unique routes"""
+        ids = pd.unique(stops['stop_id'])
+        rows = []
+        for id in ids:
+            same_id = stops[stops['stop_id'] == id]
+            rows.append(same_id[same_id['level_0'] == same_id['level_0'].min()])
+        return pd.concat(rows, axis=0).reset_index(drop=True)
 
     def update_best_route(self, end_point, walk_time):
         """Update currently best route based on stack"""
@@ -224,6 +237,6 @@ if __name__ == "__main__":
     # mandu -> gb
     # algo.get_route((54.40929967790238, 18.56702765741272), (54.381658077872665, 18.60563893543294), start_time=datetime(2023, 1, 13, 21, 15))
     # mandu -> hala oliwia
-    algo.get_route((54.40929967790238, 18.56702765741272), (54.401807374909154, 18.573207465058978), start_time=datetime(2023, 1, 13, 21, 15))
+    algo.get_route((54.40929967790238, 18.56702765741272), (54.37604412817031, 18.614456596172488), start_time=datetime(2023, 1, 13, 21, 15))
 
     # algo.get_route((54.40929967790238, 18.56702765741272), (54.40929967790238, 18.56802765741272), start_time=datetime(2023, 1, 13, 21, 15))
